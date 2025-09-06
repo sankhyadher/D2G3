@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>GROUP 3</title>
+  <title>G3 WPNS TASK </title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
   :root { --ink:#0f172a; --muted:#6b7280; --brand:#7c3aed; --accent:#22c55e; --panel:#0b1020; }
@@ -580,584 +580,6 @@ window.onload = function() {
 </html>
   </template>
 
-<template id="task3-html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>PNS Breathing – 6 BPM</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root{
-      --bg:#0e1a2b;
-      --ink:#e6edf5;
-      --muted:#9fb3c8;
-      --accent:#ff4b6e;
-      --panel:#13233a;
-      --ring:#183354;
-    }
-    html,body{
-      height:100%;
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--ink);
-    }
-    .container{
-      max-width:920px;
-      margin:0 auto;
-      padding:28px 20px 60px;
-      text-align:center;
-    }
-    h2{
-      font-size:40px;
-      margin:.2rem 0 1rem;
-      letter-spacing:.4px;
-    }
-    .instructions{
-      font-size:20px;
-      line-height:1.5;
-      color:var(--muted);
-      margin:0 auto 18px;
-      max-width:860px;
-    }
-    audio{
-      width:100%;
-      margin:16px auto 28px;
-      display:block;
-      filter:drop-shadow(0 4px 16px rgba(0,0,0,.35));
-    }
-    /* The breathing circle + glow */
-    .breath-circle{
-      width:220px;
-      height:220px;
-      margin:34px auto 18px;
-      border-radius:999px;
-      display:grid;
-      place-items:center;
-      font-size:34px;
-      font-weight:700;
-      color:#ffdfec;
-      background:radial-gradient(circle at 50% 45%, #1a2f4d 0%, #12243d 70%, #0f1f35 100%);
-      box-shadow:
-        0 0 0 12px rgba(255, 75, 110, .12),
-        0 0 38px 12px rgba(255, 75, 110, .22),
-        inset 0 0 40px rgba(255,255,255,.06);
-      transition: transform .9s ease-in-out;
-    }
-    /* soft pulsing halo that runs continuously */
-    .breath-circle::after{
-      content:"";
-      position:absolute;
-      width:260px;
-      height:260px;
-      border-radius:999px;
-      background:radial-gradient(circle, rgba(255,75,110,.28), transparent 60%);
-      filter:blur(18px);
-      z-index:-1;
-      animation:halo 3s ease-in-out infinite alternate;
-    }
-    @keyframes halo{
-      from{ opacity:.55; transform:scale(.98); }
-      to  { opacity:.85; transform:scale(1.03); }
-    }
-    .timer{
-      margin-top:10px;
-      font-size:28px;
-      letter-spacing:1px;
-      color:#ff9fbc;
-      text-shadow:0 0 18px rgba(255,75,110,.25);
-    }
-    button#startBtn{
-      margin-top:16px;
-      font-size:18px;
-      padding:12px 28px;
-      border:none; border-radius:12px;
-      font-weight:700; letter-spacing:.3px;
-      color:white; cursor:pointer;
-      background:linear-gradient(90deg,#ff4b6e,#ff7ba2);
-      box-shadow:0 10px 30px rgba(255,75,110,.28);
-      transition:transform .06s ease, filter .2s ease;
-    }
-    button#startBtn:active{ transform:translateY(1px); }
-    button#startBtn:disabled{ opacity:.6; cursor:not-allowed; filter:grayscale(.1); }
-
-    .timestamps{
-      margin-top:22px;
-      display:inline-block;
-      background:var(--panel);
-      color:#ffd5e3;
-      padding:.8em 1.2em;
-      border-radius:12px;
-      box-shadow:0 12px 34px rgba(0,0,0,.28), inset 0 0 0 1px var(--ring);
-      font-size:15px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Breathing Task: 6 Breaths Per Minute</h2>
-
-    <div class="instructions">
-      Please listen to <b>the music </b> and follow the breathing guide below.<br>
-      Breathe in as the circle expands, and breathe out as it contracts.<br>
-      Try to take <b>6 breaths per minute</b> (inhale for 5&nbsp;s, exhale for 5&nbsp;s).
-    </div>
-
-    <audio controls>
-      <source src="https://dn721609.ca.archive.org/0/items/marconi-union-weightless-528hz/Marconi%20Union%20Weightless%20%28528hz%29.mp3" type="audio/mp3">
-      Your browser does not support the audio element.
-    </audio>
-
-    <div id="breathCircle" class="breath-circle">Ready?</div>
-    <div class="timer" id="timer">10:00</div>
-    <button id="startBtn" onclick="startTask()">Start</button>
-
-    <div id="timestamps" class="timestamps" style="display:none"></div>
-  </div>
-
-  <script>
-    // --- BEGIN TIMESTAMP ---
-    let startTimestamp = Date.now();
-    let endTimestamp = null;
-    console.log("Breathing Task Start UNIX Timestamp:", startTimestamp);
-
-    // --- UI handles ---
-    const breathCircle = document.getElementById('breathCircle');
-    const timerDisplay = document.getElementById('timer');
-    const startBtn = document.getElementById('startBtn');
-    const audio = document.querySelector('audio');
-
-    // timing
-    const sessionLength = 600; // 10 min
-    const breathCycle = 10;    // 5 in + 5 out
-    let interval, timerInterval, timeLeft = sessionLength;
-
-    function updateTimer(){
-      const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
-      const s = String(timeLeft%60).padStart(2,'0');
-      timerDisplay.textContent = `${m}:${s}`;
-    }
-
-    function sendTimestampsToBackend(start, end){
-      // keep your local endpoint if needed; made inert here
-      // fetch('http://localhost:3000/api/timestamps', { ... })
-    }
-
-    function showTimestamps(){
-      const box = document.getElementById('timestamps');
-      box.style.display = 'inline-block';
-      box.innerHTML = `<b>Session Start UNIX Timestamp:</b> ${startTimestamp}<br>
-                       <b>Session End UNIX Timestamp:</b> ${endTimestamp}`;
-    }
-
-    function startTask(){
-      startBtn.disabled = true;
-      timeLeft = sessionLength;
-      updateTimer();
-      audio.currentTime = 0;
-      audio.play();
-
-      // kick off at "Inhale" with smooth scale
-      breathCircle.textContent = 'Inhale';
-      breathCircle.style.transform = 'scale(1.5)';
-      let cycleTick = 0;
-
-      clearInterval(interval);
-      interval = setInterval(() => {
-        cycleTick = (cycleTick + 1) % breathCycle;
-        if (cycleTick === 0){
-          breathCircle.textContent = 'Inhale';
-          breathCircle.style.transform = 'scale(1.5)';
-        } else if (cycleTick === 5){
-          breathCircle.textContent = 'Exhale';
-          breathCircle.style.transform = 'scale(1)';
-        }
-      }, 1000);
-
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimer();
-        if (timeLeft <= 0){
-          clearInterval(interval);
-          clearInterval(timerInterval);
-          breathCircle.textContent = 'Done!';
-          audio.pause();
-          startBtn.disabled = false;
-
-          endTimestamp = Date.now();
-          console.log("Breathing Task End UNIX Timestamp:", endTimestamp);
-          showTimestamps();
-          sendTimestampsToBackend(startTimestamp, endTimestamp);
-
-          // advance to next task in parent
-          try { parent.postMessage({type:'taskComplete', task:3}, '*'); } catch(e) {}
-        }
-      }, 1000);
-    }
-  </script>
-</body>
-</html>
-</template>
-
-
-  <!-- =========================
-       TASK 4 – TRAIL MAKING
-       (Original code with postMessage in endAll)
-       ========================= -->
-  <template id="task4-html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Trail Making Task – 10 Trail Types</title>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; }
-    #instructions { margin: 20px; font-size: 1.1rem; }
-    #timer, #total-timer { font-size: 24px; margin: 10px; }
-    #result { font-size: 20px; color: green; margin: 20px; }
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(5, 60px);
-      grid-gap: 18px;
-      justify-content: center;
-      margin: 30px auto;
-      width: max-content;
-    }
-    .circle-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      border: 2px solid #333;
-      font-size: 20px;
-      background: #fff;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .circle-btn.correct {
-      background: #aaf;
-      color: #333;
-      border-color: #77f;
-      cursor: default;
-    }
-    .circle-btn:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    #history {
-      margin-top: 24px;
-      font-size: 18px;
-      color: #444;
-    }
-    #history ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: inline-block;
-      text-align: left;
-    }
-    #history li {
-      margin-bottom: 4px;
-    }
-    #end-message {
-      color: #b00;
-      font-size: 22px;
-      margin-top: 30px;
-      font-weight: bold;
-    }
-    .timestamps {
-      margin-top: 1.5em;
-      color: #ffd700;
-      font-size: 1.1em;
-      background: #0f3460;
-      border-radius: 10px;
-      padding: 0.7em 1.2em;
-      display: inline-block;
-    }
-    button.start-btn {
-      font-size: 1.1rem;
-      padding: 8px 28px;
-      margin-top: 18px;
-      background: #77f;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button.start-btn:hover {
-      background: #55c;
-    }
-  </style>
-</head>
-<body>
-  <h1>Trail Making Task</h1>
-  <div id="instructions"></div>
-  <div id="total-timer">Total Time Left: 10:00</div>
-  <div id="timer">Round Time: 0.00 s</div>
-  <div id="grid"></div>
-  <div id="result"></div>
-  <div id="history"></div>
-  <div id="end-message"></div>
-  <div id="timestamps" class="timestamps" style="display:none"></div>
-
-  <script>
-    // --- TIMESTAMP LOGIC ---
-    let startTimestamp = Date.now();
-    let endTimestamp = null;
-    console.log("Trail Making Task Start UNIX Timestamp:", startTimestamp);
-
-    function sendTimestampsToBackend(start, end) {
-      fetch('http://localhost:3000/api/timestamps', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          startTimestamp: start,
-          endTimestamp: end
-        })
-      })
-      .then(response => {
-        if (response.ok) {
-          console.log('Timestamps sent to backend successfully.');
-        } else {
-          console.error('Failed to send timestamps to backend.');
-        }
-      })
-      .catch(err => {
-        console.error('Error sending timestamps:', err);
-      });
-    }
-
-    function showTimestamps() {
-      let box = document.getElementById('timestamps');
-      box.style.display = 'inline-block';
-      box.innerHTML = `<b>Session Start UNIX Timestamp:</b> ${startTimestamp}<br>
-                       <b>Session End UNIX Timestamp:</b> ${endTimestamp}`;
-    }
-
-    // --- TRAIL DEFINITIONS ---
-    const trailTypes = [
-      {
-        label: "Numbers 1–25",
-        instructions: "Click the buttons in ascending order from <b>1</b> to <b>25</b>.",
-        sequence: () => Array.from({length: 25}, (_, i) => (i + 1).toString())
-      },
-      {
-        label: "Alternating Numbers & Letters",
-        instructions: "Click the buttons in alternating order: <b>1, A, 2, B, 3, C, ...</b> as quickly as possible.",
-        sequence: () => {
-          let arr = [];
-          for (let i = 1; i <= 13; i++) {
-            arr.push(i.toString());
-            if (i <= 13) arr.push(String.fromCharCode(64 + i)); // A–M
-          }
-          return arr.slice(0, 25);
-        }
-      },
-      {
-        label: "Letters A–Y",
-        instructions: "Click the buttons in alphabetical order from <b>A</b> to <b>Y</b> as quickly as possible.",
-        sequence: () => Array.from({length: 25}, (_, i) => String.fromCharCode(65 + i))
-      },
-      {
-        label: "Even Numbers 2–50",
-        instructions: "Click the even numbers in order from <b>2</b> to <b>50</b> as quickly as possible.",
-        sequence: () => Array.from({length: 25}, (_, i) => ((i + 1) * 2).toString())
-      },
-      {
-        label: "Odd Numbers 1–49",
-        instructions: "Click the odd numbers in order from <b>1</b> to <b>49</b> as quickly as possible.",
-        sequence: () => Array.from({length: 25}, (_, i) => (i * 2 + 1).toString())
-      },
-      {
-        label: "Reverse Numbers 25–1",
-        instructions: "Click the numbers in descending order from <b>25</b> to <b>1</b> as quickly as possible.",
-        sequence: () => Array.from({length: 25}, (_, i) => (25 - i).toString())
-      },
-      {
-        label: "Reverse Letters Y–A",
-        instructions: "Click the letters in reverse alphabetical order from <b>Y</b> to <b>A</b> as quickly as possible.",
-        sequence: () => Array.from({length: 25}, (_, i) => String.fromCharCode(89 - i))
-      },
-      {
-        label: "Roman Numerals I–XXV",
-        instructions: "Click the Roman numerals in order from <b>I</b> to <b>XXV</b> as quickly as possible.",
-        sequence: () => ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI","XXII","XXIII","XXIV","XXV"]
-      },
-      {
-        label: "Prime Numbers (first 25)",
-        instructions: "Click the prime numbers in order from <b>2</b> to <b>97</b> as quickly as possible.",
-        sequence: () => ["2","3","5","7","11","13","17","19","23","29","31","37","41","43","47","53","59","61","67","71","73","79","83","89","97"]
-      },
-      {
-        label: "Random Symbols",
-        instructions: "Click the symbols in the order shown in the instructions as quickly as possible.",
-        sequence: () => ["!","@","#","$","%","^","&","*","(",")","-","+","=","?","/","<",">","~","`","|","{","}","[","]","\\"]
-      }
-    ];
-
-    // --- STATE ---
-    const TOTAL_PLAYTIME = 10 * 60 * 1000; // 10 minutes in ms
-    let currentTrail = 0;
-    let allTimes = Array(trailTypes.length).fill(null);
-    let started = false, startTime, timerInterval;
-    let totalStartTime = Date.now();
-    let totalTimerInterval;
-    let timeUp = false;
-    let sequence = [];
-    let next = 0;
-
-    // --- UTILS ---
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-    function msToMinSec(ms) {
-      let sec = Math.max(0, Math.ceil(ms / 1000));
-      let min = Math.floor(sec / 60);
-      let rem = sec % 60;
-      return `${min}:${rem.toString().padStart(2, '0')}`;
-    }
-
-    // --- TRAIL FLOW ---
-    function startNextTrail() {
-      if (currentTrail >= trailTypes.length) {
-        endAll();
-        return;
-      }
-      // Show instructions for the next trail
-      document.getElementById('instructions').innerHTML = `
-        <b>Trail ${currentTrail+1} of ${trailTypes.length}: ${trailTypes[currentTrail].label}</b><br>
-        ${trailTypes[currentTrail].instructions}<br>
-        <button class="start-btn" onclick="startTrail()">Start This Trail</button>
-      `;
-      document.getElementById('grid').innerHTML = '';
-      document.getElementById('timer').textContent = 'Round Time: 0.00 s';
-      document.getElementById('result').textContent = '';
-    }
-
-    function startTrail() {
-      document.getElementById('instructions').innerHTML = `
-        <b>Trail ${currentTrail+1} of ${trailTypes.length}: ${trailTypes[currentTrail].label}</b><br>
-        ${trailTypes[currentTrail].instructions}
-      `;
-      createGrid();
-    }
-
-    function createGrid() {
-      if (timeUp) return;
-      const grid = document.getElementById('grid');
-      grid.innerHTML = '';
-      document.getElementById('result').textContent = '';
-      document.getElementById('timer').textContent = 'Round Time: 0.00 s';
-      started = false;
-      sequence = trailTypes[currentTrail].sequence();
-      let shuffled = shuffle(sequence.slice());
-      next = 0;
-      shuffled.forEach(val => {
-        const btn = document.createElement('button');
-        btn.className = 'circle-btn';
-        btn.textContent = val;
-        btn.dataset.val = val;
-        btn.addEventListener('click', function() {
-          if (btn.textContent === sequence[next]) {
-            btn.classList.add('correct');
-            btn.disabled = true;
-            if (!started) {
-              started = true;
-              startTime = Date.now();
-              timerInterval = setInterval(updateTimer, 10);
-            }
-            next++;
-            if (next >= sequence.length) endTask();
-          }
-        });
-        grid.appendChild(btn);
-      });
-    }
-
-    function updateTimer() {
-      if (started) {
-        let t = (Date.now() - startTime)/1000;
-        document.getElementById('timer').textContent = `Round Time: ${t.toFixed(2)} s`;
-      }
-    }
-
-    function updateTotalTimer() {
-      let elapsed = Date.now() - totalStartTime;
-      let remaining = TOTAL_PLAYTIME - elapsed;
-      document.getElementById('total-timer').textContent = `Total Time Left: ${msToMinSec(remaining)}`;
-      if (remaining <= 0 && !timeUp) {
-        endAll();
-      }
-    }
-
-    function endTask() {
-      clearInterval(timerInterval);
-      let totalTime = ((Date.now() - startTime)/1000).toFixed(2);
-      document.getElementById('result').textContent = `Finished! Total time: ${totalTime} seconds.`;
-      allTimes[currentTrail] = totalTime;
-      showHistory();
-      document.querySelectorAll('.circle-btn:not(.correct)').forEach(btn => btn.disabled = true);
-      setTimeout(() => {
-        currentTrail++;
-        startNextTrail();
-      }, 1500);
-    }
-
-    function showHistory() {
-      let html = `<b>Completed Trails:</b><ul>`;
-      allTimes.forEach((t, i) => {
-        if (t !== null) {
-          html += `<li>${trailTypes[i].label}: <span style="color:green">${t} s</span></li>`;
-        }
-      });
-      html += `</ul>`;
-      document.getElementById('history').innerHTML = html;
-    }
-
-    function endAll() {
-      timeUp = true;
-      clearInterval(totalTimerInterval);
-      document.getElementById('grid').innerHTML = '';
-      document.getElementById('result').textContent = '';
-      let summary = `<div id="end-message">All trails completed! Thank you for participating.<br><br>`;
-      allTimes.forEach((t, i) => {
-        if (t !== null)
-          summary += `${trailTypes[i].label}: <b>${t} s</b><br>`;
-      });
-      summary += `</div>`;
-      document.getElementById('end-message').innerHTML = summary;
-      document.getElementById('total-timer').textContent = 'Total Time Left: 0:00';
-
-      // --- END TIMESTAMP ---
-      endTimestamp = Date.now();
-      console.log("Trail Making Task End UNIX Timestamp:", endTimestamp);
-
-      // Show timestamps on page
-      showTimestamps();
-
-      // Send to backend
-      sendTimestampsToBackend(startTimestamp, endTimestamp);
-
-      // >>> ADVANCE FLOW <<<
-      try { parent.postMessage({type:'taskComplete', task:4}, '*'); } catch(e) {}
-    }
-
-    // --- INIT ---
-    startNextTrail();
-    totalTimerInterval = setInterval(updateTotalTimer, 250);
-    updateTotalTimer();
-    // Expose startTrail for button
-    window.startTrail = startTrail;
-  </script>
-</body>
-</html>
-  </template>
-
   <!-- =========================
        TASK 5 – COUNTERCONDITIONING
        (Original code with postMessage after game end)
@@ -1318,9 +740,9 @@ window.onload = function() {
 <script>
 const shapeSVGs = {
   'sphere': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><radialGradient id="g1" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#a3f"/></radialGradient></defs><ellipse cx="40" cy="40" rx="32" ry="32" fill="url(#g1)" stroke="#5c2a7c" stroke-width="4"/></svg>`,
-  'cube': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#3a6"/></linearGradient></defs><rect x="16" y="16" width="48" height="48" rx="8" fill="url(#g2)" stroke="#2a7c5c" stroke-width="4"/></svg>`,
-  'pyramid': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#a3f"/></linearGradient></defs><polygon points="40,12 68,68 12,68" fill="url(#g3)" stroke="#5c2a7c" stroke-width="4"/></svg>`,
-  'cylinder': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#3a6"/></linearGradient></defs><ellipse cx="40" cy="20" rx="24" ry="10" fill="#fff" opacity="0.5"/><rect x="16" y="20" width="48" height="40" rx="24" fill="url(#g4)" stroke="#2a7c5c" stroke-width="4"/><ellipse cx="40" cy="60" rx="24" ry="10" fill="#3a6" stroke="#2a7c5c" stroke-width="4"/></svg>`
+  'cube': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><linearGradient id="g2" x1="0" y="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#3a6"/></linearGradient></defs><rect x="16" y="16" width="48" height="48" rx="8" fill="url(#g2)" stroke="#2a7c5c" stroke-width="4"/></svg>`,
+  'pyramid': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><linearGradient id="g3" x1="0" y="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#a3f"/></linearGradient></defs><polygon points="40,12 68,68 12,68" fill="url(#g3)" stroke="#5c2a7c" stroke-width="4"/></svg>`,
+  'cylinder': `<svg width="80" height="80" viewBox="0 0 80 80"><defs><linearGradient id="g4" x1="0" y="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#3a6"/></linearGradient></defs><ellipse cx="40" cy="20" rx="24" ry="10" fill="#fff" opacity="0.5"/><rect x="16" y="20" width="48" height="40" rx="24" fill="url(#g4)" stroke="#2a7c5c" stroke-width="4"/><ellipse cx="40" cy="60" rx="24" ry="10" fill="#3a6" stroke="#2a7c5c" stroke-width="4"/></svg>`
 };
 const allSymbols = ['sphere', 'cube', 'pyramid', 'cylinder'];
 const noGainCombos = [['cube','cube','cube'], ['cylinder','cylinder','cylinder']];
@@ -1645,16 +1067,169 @@ function spin() {
        TASK 6 – SNS (Cold Pressor)
        (Original code with postMessage when finished)
        ========================= -->
+  <template id="task6-html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cold Pressor Task</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #19335c; 
+      color: #fff; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      min-height: 100vh; 
+      margin: 0; 
+    }
+    .container {
+      background: #355c7d;
+      padding: 2em 3em;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .timer {
+      font-size: 2em;
+      margin: 1em 0;
+      letter-spacing: 0.1em;
+      color: #ffd700;
+    }
+    button {
+      padding: 0.7em 2.2em;
+      font-size: 1.2em;
+      background: #ffd700;
+      color: #19335c;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1em;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    button:disabled {
+      background: #aaa;
+      color: #666;
+      cursor: default;
+    }
+    .timestamps {
+      margin-top: 1.5em;
+      color: #ffd700;
+      font-size: 1.1em;
+      background: #2a3a5c;
+      border-radius: 10px;
+      padding: 0.7em 1.2em;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Cold Pressor Task</h2>
+    <div id="instructions">
+      <p>
+        <b>Instructions:</b><br>
+        When you are ready, click <b>Start</b> and immerse your hand in ice-cold water.<br>
+        Keep your hand in the water until the timer reaches zero (2 minutes).<br>
+        Remove your hand if you feel too uncomfortable.<br>
+        Press <b>Start</b> to begin.
+      </p>
+    </div>
+    <div class="timer" id="timer">02:00</div>
+    <button id="startBtn" onclick="startTask()">Start</button>
+    <div id="doneMsg" style="display:none; margin-top:1em;">
+      <b>Task complete! You may remove your hand from the water.</b>
+    </div>
+    <div id="timestamps" class="timestamps" style="display:none"></div>
+  </div>
+  <script>
+    let timerDisplay = document.getElementById('timer');
+    let startBtn = document.getElementById('startBtn');
+    let doneMsg = document.getElementById('doneMsg');
+    let timestampsDiv = document.getElementById('timestamps');
+    let interval;
+    let duration = 2 * 60; // 2 minutes in seconds
+    let timeLeft = duration;
+    let startTimestamp = null;
+    let endTimestamp = null;
+
+    function updateTimer() {
+      let min = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+      let sec = String(timeLeft % 60).padStart(2, '0');
+      timerDisplay.textContent = `${min}:${sec}`;
+    }
+
+    function showTimestamps() {
+      timestampsDiv.style.display = 'inline-block';
+      timestampsDiv.innerHTML = `<b>Task Start UNIX Timestamp:</b> ${startTimestamp}<br>
+                                 <b>Task End UNIX Timestamp:</b> ${endTimestamp}`;
+    }
+
+    function startTask() {
+      startBtn.disabled = true;
+      doneMsg.style.display = 'none';
+      timeLeft = duration;
+      updateTimer();
+      startTimestamp = Date.now();
+      console.log("Cold Pressor Task Start UNIX Timestamp:", startTimestamp);
+      interval = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          endTimestamp = Date.now();
+          console.log("Cold Pressor Task End UNIX Timestamp:", endTimestamp);
+          doneMsg.style.display = 'block';
+          showTimestamps();
+          // Optionally send to backend:
+          // sendTimestampsToBackend(startTimestamp, endTimestamp);
+          startBtn.disabled = false;
+          startBtn.textContent = "Restart";
+          // >>> FLOW COMPLETE <<<
+          try { parent.postMessage({type:'taskComplete', task:6}, '*'); } catch(e) {}
+        }
+      }, 1000);
+    }
+
+    // Optional: send timestamps to backend
+    /*
+    function sendTimestampsToBackend(start, end) {
+      fetch('http://localhost:3000/api/timestamps', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          startTimestamp: start,
+          endTimestamp: end
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log('Timestamps sent to backend successfully.');
+        } else {
+          console.error('Failed to send timestamps to backend.');
+        }
+      })
+      .catch(err => {
+        console.error('Error sending timestamps:', err);
+      });
+    }
+    */
+  </script>
+</body>
+</html>
+  </template>
+
   <script>
     // Runner orchestrator
-   const tasks = [
-  { id: 'task1-html', label: '1. MEMORY RETRIEVAL TASK' },
-  { id: 'task2-html', label: '2. DIGIT CANCELLATION & WORD FRAGMENT' }, // <- if you swapped in the new task
-  { id: 'task3-html', label: '3. PNS TASK (6 BPM Breathing)' },
-  { id: 'task4-html', label: '4. TRAIL MAKING TASK' },
-  { id: 'task5-html', label: '5. COUNTERCONDITIONING TASK' }
-];
-
+    const tasks = [
+      { id: 'task1-html', label: '1. MEMORY RETRIEVAL TASK' },
+      { id: 'task2-html', label: '2. DIGIT CANCELLATION TASK' },
+      { id: 'task5-html', label: '5. COUNTERCONDITIONING TASK' },
+      { id: 'task6-html', label: '6. SNS TASK (Cold Pressor)' }
+    ];
 
     const frame = document.getElementById('stage');
     const startBtn = document.getElementById('startBtn');
@@ -1682,7 +1257,7 @@ function spin() {
         frame.srcdoc = `<html><body style="display:grid;place-items:center;min-height:80vh;background:#0b1020;color:#e5e7eb;font-family:system-ui,Segoe UI,Arial">
           <div style="text-align:center">
             <h2>✅ Experiment Complete</h2>
-            <p>Thank you! All six tasks have been finished in the requested order.</p>
+            <p>Thank you! </p>
           </div>
         </body></html>`;
       }
